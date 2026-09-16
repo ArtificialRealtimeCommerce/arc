@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ARC — Artificial Real-time Commerce</title>
+<meta name="description" content="ARC is a live observatory for agentic commerce on Arc mainnet: agent identities, escrowed jobs, and USDC settlements between machines, indexed in real time.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #14213D;
+    --bg-deep: #0E1830;
+    --surface: #1C2D55;
+    --line: #2E4272;
+    --ink: #EEF1F8;
+    --ink-soft: #A9B4CF;
+    --amber: #F0B35B;
+    --signal: #7FD1FF;
+    --settled: #6FD59A;
+    --font: "Manrope", "Segoe UI", system-ui, sans-serif;
+    --mono: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #14213D; --bg-deep: #0E1830; --surface: #1C2D55; --line: #2E4272; --ink: #EEF1F8; --ink-soft: #A9B4CF; }
+  }
+  :root[data-theme="dark"] { --bg: #14213D; --bg-deep: #0E1830; --surface: #1C2D55; --line: #2E4272; --ink: #EEF1F8; --ink-soft: #A9B4CF; }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: var(--font); font-size: 17px; line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+  .wrap { width: min(1120px, calc(100% - 48px)); margin: 0 auto; }
+
+  header.top { display: flex; align-items: center; justify-content: space-between; padding: 26px 0; }
+  .wordmark { font-weight: 800; font-size: 22px; letter-spacing: -0.02em; text-decoration: none; }
+  .wordmark span { color: var(--amber); }
+  nav a { text-decoration: none; color: var(--ink-soft); margin-left: 28px; font-weight: 500; }
+  nav a:hover { color: var(--ink); }
+
+  .hero { padding: 56px 0 40px; display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 48px; align-items: end; }
+  .hero h1 { font-size: clamp(42px, 6.2vw, 78px); line-height: 1.02; letter-spacing: -0.035em; font-weight: 800; margin: 0 0 22px; }
+  .hero p.lede { font-size: 19px; color: var(--ink-soft); max-width: 34em; margin: 0 0 30px; }
+  .cta { display: flex; gap: 14px; flex-wrap: wrap; }
+  .btn { display: inline-block; padding: 13px 22px; border-radius: 8px; font-weight: 600; text-decoration: none; border: 1px solid var(--line); }
+  .btn.primary { background: var(--amber); color: var(--bg-deep); border-color: var(--amber); }
+  .btn.primary:hover { filter: brightness(1.06); }
+  .btn.ghost:hover { border-color: var(--ink-soft); }
+
+  .netcard { border-left: 3px solid var(--amber); padding: 6px 0 6px 22px; }
+  .netcard dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 8px 22px; font-size: 15px; }
+  .netcard dt { color: var(--ink-soft); }
+  .netcard dd { margin: 0; font-weight: 600; }
+  .netcard dd code { font-family: var(--mono); font-size: 14px; font-weight: 400; background: var(--bg-deep); padding: 2px 7px; border-radius: 5px; }
+
+  /* The tape — the one memorable element */
+  .tape { background: var(--bg-deep); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-top: 24px; }
+  .tape-head { display: flex; justify-content: space-between; align-items: baseline; padding: 18px 0 10px; font-size: 14px; color: var(--ink-soft); }
+  .tape-head .live { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; color: var(--ink); }
+  .tape-head .live::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--settled); box-shadow: 0 0 0 0 rgba(111,213,154,.6); animation: pulse 1.6s infinite; }
+  @keyframes pulse { to { box-shadow: 0 0 0 10px rgba(111,213,154,0); } }
+  .tape-body { font-family: var(--mono); font-size: 14px; height: 264px; overflow: hidden; position: relative; padding-bottom: 12px; }
+  .tape-body::after { content: ""; position: absolute; inset: auto 0 0 0; height: 70px; background: linear-gradient(transparent, var(--bg-deep)); pointer-events: none; }
+  .row { display: grid; grid-template-columns: 90px 96px 1fr 30px 1fr 130px; gap: 16px; padding: 7px 0; border-bottom: 1px dashed var(--line); white-space: nowrap; overflow: hidden; }
+  .row.new { animation: drop .35s ease-out; }
+  @keyframes drop { from { transform: translateY(-8px); opacity: 0; } }
+  .row .blk { color: var(--ink-soft); }
+  .row .kind { font-weight: 500; }
+  .row .kind.x402 { color: var(--signal); }
+  .row .kind.job { color: var(--amber); }
+  .row .kind.reg { color: var(--settled); }
+  .row .arrow { color: var(--ink-soft); text-align: center; }
+  .row .amt { text-align: right; font-variant-numeric: tabular-nums; }
+  .row .addr { overflow: hidden; text-overflow: ellipsis; }
+  @media (prefers-reduced-motion: reduce) { .row.new, .tape-head .live::before { animation: none; } }
+
+  section.block { padding: 84px 0 0; }
+  section.block h2 { font-size: clamp(28px, 3.4vw, 40px); letter-spacing: -0.03em; line-height: 1.1; margin: 0 0 14px; font-weight: 800; }
+  section.block > .wrap > p.intro { color: var(--ink-soft); max-width: 40em; margin: 0 0 36px; font-size: 18px; }
+
+  .ledger { border-top: 1px solid var(--line); }
+  .ledger .item { display: grid; grid-template-columns: 220px 1fr; gap: 28px; padding: 26px 0; border-bottom: 1px solid var(--line); }
+  .ledger .item h3 { margin: 0 0 4px; font-size: 20px; letter-spacing: -0.01em; }
+  .ledger .item .std { font-family: var(--mono); font-size: 13px; color: var(--amber); }
+  .ledger .item p { margin: 0; color: var(--ink-soft); max-width: 46em; }
+
+  pre.code { background: var(--bg-deep); border: 1px solid var(--line); border-radius: 10px; padding: 22px 24px; overflow-x: auto; font-family: var(--mono); font-size: 14px; line-height: 1.7; margin: 0; }
+  pre.code .c { color: var(--ink-soft); }
+  pre.code .p { color: var(--signal); }
+
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
+  .two .note { color: var(--ink-soft); }
+  .two .note strong { color: var(--ink); }
+
+  footer { margin-top: 96px; border-top: 1px solid var(--line); padding: 36px 0 48px; color: var(--ink-soft); font-size: 15px; }
+  footer .foot { display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+  footer .backronym { color: var(--ink); font-weight: 600; }
+  footer .backronym b { color: var(--amber); font-weight: 800; }
+
+  @media (max-width: 860px) {
+    .hero { grid-template-columns: 1fr; gap: 32px; padding-top: 36px; }
+    .two { grid-template-columns: 1fr; }
+    .ledger .item { grid-template-columns: 1fr; gap: 8px; }
+    .row { grid-template-columns: 70px 80px 1fr 1fr; }
+    .row .arrow, .row .amt { display: none; }
+    nav a { margin-left: 18px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="wordmark" href="#">ARC<span>.</span></a>
+    <nav>
+      <a href="#indexes">What it indexes</a>
+      <a href="#api">API</a>
+      <a href="https://github.com/" id="gh-link">GitHub</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div>
+      <h1>The ledger where machines pay machines.</h1>
+      <p class="lede">ARC watches Arc mainnet as it happens: agents registering, jobs going into USDC escrow, and x402 settlements clearing between services. One public feed, one API, no account needed.</p>
+      <div class="cta">
+        <a class="btn primary" href="#api">Read the API</a>
+        <a class="btn ghost" href="#indexes">How it works</a>
+      </div>
+    </div>
+    <aside class="netcard" aria-label="Network">
+      <dl>
+        <dt>Network</dt><dd>Arc mainnet</dd>
+        <dt>Chain ID</dt><dd><code>5042</code></dd>
+        <dt>Gas</dt><dd>USDC</dd>
+        <dt>Finality</dt><dd>under one second</dd>
+        <dt>Indexer</dt><dd id="idx-status">demo feed</dd>
+      </dl>
+    </aside>
+  </section>
+</div>
+
+<div class="tape" id="tape">
+  <div class="wrap">
+    <div class="tape-head">
+      <span class="live" id="tape-label">Live settlements</span>
+      <span id="tape-note">Simulated until the indexer is connected</span>
+    </div>
+    <div class="tape-body" id="tape-body" aria-live="polite" aria-label="Recent on-chain agent activity"></div>
+  </div>
+</div>
+
+<section class="block" id="indexes">
+  <div class="wrap">
+    <h2>Three things an agent economy needs to be visible</h2>
+    <p class="intro">Arc ships agent-native standards from day one. ARC indexes each of them from the block head forward and joins them into one picture of who is working, who is paying, and whether it settled.</p>
+    <div class="ledger">
+      <div class="item">
+        <div><h3>Identities</h3><span class="std">ERC-8004 · Identity + Reputation</span></div>
+        <p>Every agent registration and every piece of feedback left against it. ARC keeps the owner, the agent card URI, and a running feedback count so you can see which agents are real and which are noise.</p>
+      </div>
+      <div class="item">
+        <div><h3>Jobs</h3><span class="std">ERC-8183 · Escrow lifecycle</span></div>
+        <p>A job is created, funded in USDC, submitted, then completed or disputed. ARC tracks the whole lifecycle per job, so budget, amount funded, and amount paid are always one query away.</p>
+      </div>
+      <div class="item">
+        <div><h3>Payments</h3><span class="std">x402 · USDC settlement</span></div>
+        <p>USDC transfers on Arc, with the ones settled through an EIP-3009 authorization tagged as x402. That tag is what separates a wallet sending money from a machine paying for a request.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="api">
+  <div class="wrap">
+    <h2>Read it from anywhere</h2>
+    <div class="two">
+      <pre class="code"><span class="c"># base URL: same host as this page</span>
+GET <span class="p">/api/health</span>            <span class="c"># indexer height</span>
+GET <span class="p">/api/stats</span>             <span class="c"># counts + x402 volume</span>
+GET <span class="p">/api/agents</span>            <span class="c"># newest registrations</span>
+GET <span class="p">/api/agents/:id</span>        <span class="c"># feedback + jobs for one agent</span>
+GET <span class="p">/api/jobs?status=funded</span>
+GET <span class="p">/api/payments?kind=x402</span></pre>
+      <div class="note">
+        <p><strong>Free while Arc is new.</strong> The API is open and unmetered during launch season. Pay-per-call over x402 comes later, so the observatory can pay for its own RPC the same way the agents it watches pay for theirs.</p>
+        <p><strong>No historical backfill yet.</strong> The indexer starts at the block head the day it goes live. Counts grow from there; anything before that block isn't in the database.</p>
+        <p><strong>Open source.</strong> Apache-2.0. Run your own copy against your own RPC if you'd rather not trust ours.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot">
+    <div class="backronym"><b>ARC</b> = Artificial Real-time Commerce</div>
+    <div>Independent project. Not affiliated with Circle or the Arc network.</div>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var body = document.getElementById('tape-body');
+  var note = document.getElementById('tape-note');
+  var status = document.getElementById('idx-status');
+  var MAX_ROWS = 14;
+
+  function short(a) { return a.slice(0, 6) + '…' + a.slice(-4); }
+  function usdc(raw, decimals) {
+    var n = Number(raw) / Math.pow(10, decimals);
+    return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 }) + ' USDC';
+  }
+  function addRow(r, animate) {
+    var el = document.createElement('div');
+    el.className = 'row' + (animate ? ' new' : '');
+    el.innerHTML =
+      '<span class="blk">#' + r.block + '</span>' +
+      '<span class="kind ' + r.kind + '">' + r.label + '</span>' +
+      '<span class="addr">' + r.from + '</span>' +
+      '<span class="arrow">\u2192</span>' +
+      '<span class="addr">' + r.to + '</span>' +
+      '<span class="amt">' + r.amt + '</span>';
+    body.insertBefore(el, body.firstChild);
+    while (body.children.length > MAX_ROWS) body.removeChild(body.lastChild);
+  }
+
+  // --- Live mode: read from the API served alongside this page ---
+  function tryLive() {
+    return fetch('/api/payments?limit=14').then(function (res) {
+      if (!res.ok) throw new Error('no api');
+      return res.json();
+    }).then(function (rows) {
+      if (!Array.isArray(rows)) throw new Error('bad api');
+      status.textContent = 'connected';
+      note.textContent = 'Reading from the ARC indexer';
+      rows.reverse().forEach(function (p) {
+        addRow({ block: p.block, kind: p.kind === 'x402' ? 'x402' : 'pay',
+          label: p.kind === 'x402' ? 'x402' : 'transfer',
+          from: short(p.from_addr), to: short(p.to_addr), amt: usdc(p.value, 6) }, false);
+      });
+      setInterval(function () {
+        fetch('/api/payments?limit=1').then(function (r) { return r.json(); }).then(function (rows) {
+          var p = rows[0]; if (!p) return;
+          var first = body.firstChild;
+          if (first && first.dataset.tx === p.tx) return;
+          addRow({ block: p.block, kind: p.kind === 'x402' ? 'x402' : 'pay', label: p.kind === 'x402' ? 'x402' : 'transfer',
+            from: short(p.from_addr), to: short(p.to_addr), amt: usdc(p.value, 6) }, true);
+          body.firstChild.dataset.tx = p.tx;
+        }).catch(function () {});
+      }, 1500);
+    });
+  }
+
+  // --- Demo mode: plausible shapes, clearly labelled, no real addresses ---
+  function hex(n) { var s = '0x'; for (var i = 0; i < n; i++) s += '0123456789abcdef'[Math.floor(Math.random() * 16)]; return s; }
+  var block = 1840 + Math.floor(Math.random() * 400);
+  var kinds = [
+    function () { return { kind: 'x402', label: 'x402', from: short(hex(40)), to: short(hex(40)), amt: usdc(String(Math.floor(Math.random() * 9000) + 100), 6) }; },
+    function () { return { kind: 'x402', label: 'x402', from: short(hex(40)), to: short(hex(40)), amt: usdc(String(Math.floor(Math.random() * 400) + 1), 6) }; },
+    function () { return { kind: 'job', label: 'job funded', from: short(hex(40)), to: 'escrow', amt: usdc(String((Math.floor(Math.random() * 90) + 10) * 1e6), 6) }; },
+    function () { return { kind: 'job', label: 'job paid', from: 'escrow', to: short(hex(40)), amt: usdc(String((Math.floor(Math.random() * 60) + 5) * 1e6), 6) }; },
+    function () { return { kind: 'reg', label: 'agent #' + (300 + Math.floor(Math.random() * 900)), from: short(hex(40)), to: 'identity registry', amt: '' }; },
+    function () { return { kind: 'pay', label: 'transfer', from: short(hex(40)), to: short(hex(40)), amt: usdc(String(Math.floor(Math.random() * 250e6)), 6) }; }
+  ];
+  function demoRow() { var r = kinds[Math.floor(Math.random() * kinds.length)](); r.block = block; if (Math.random() < 0.6) block++; return r; }
+  function startDemo() {
+    for (var i = 0; i < 10; i++) addRow(demoRow(), false);
+    setInterval(function () { addRow(demoRow(), true); }, 900 + Math.random() * 700);
+  }
+
+  tryLive().catch(startDemo);
+})();
+</script>
+</body>
+</html>

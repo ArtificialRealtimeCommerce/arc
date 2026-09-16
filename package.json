@@ -1,0 +1,31 @@
+{
+  "name": "arc-observatory",
+  "version": "0.1.0",
+  "description": "ARC — Artificial Real-time Commerce. Observatory for agentic commerce on Arc mainnet (chain 5042).",
+  "private": true,
+  "type": "module",
+  "license": "Apache-2.0",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc",
+    "test": "node --test --import tsx tests/*.test.ts",
+    "db:migrate": "tsx src/db/migrate.ts",
+    "indexer": "tsx src/indexer/index.ts",
+    "api": "tsx src/api/server.ts",
+    "start": "node dist/api/server.js",
+    "start:indexer": "node dist/indexer/index.js"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.0",
+    "hono": "^4.6.0",
+    "pg": "^8.13.0",
+    "viem": "^2.21.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/pg": "^8.11.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}
