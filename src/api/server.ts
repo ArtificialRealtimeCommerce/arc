@@ -8,9 +8,27 @@ import { config } from "../config.js";
 const app = new Hono();
 app.use("/api/*", cors());
 
+// Global error handler: log the full error, return structured JSON instead of a
+// bare "Internal Server Error". Applies to every route below.
+app.onError((err, c) => {
+  console.error(`[api] ${c.req.method} ${c.req.path} failed:`, err);
+  return c.json({ error: "internal_error", detail: (err as Error).message }, 500);
+});
+
+// Health must never hard-fail on a DB hiccup: it reports DB reachability as a
+// field so Railway's healthcheck stays green even when Postgres is momentarily
+// unavailable.
 app.get("/api/health", async (c) => {
-  const last = await getState("last_indexed_block");
-  return c.json({ ok: true, chainId: 5042, lastIndexedBlock: last ? Number(last) : null });
+  let db: "ok" | "unavailable" = "ok";
+  let lastIndexedBlock: number | null = null;
+  try {
+    const last = await getState("last_indexed_block");
+    lastIndexedBlock = last ? Number(last) : null;
+  } catch (err) {
+    db = "unavailable";
+    console.error("[health] db check failed:", (err as Error).message);
+  }
+  return c.json({ ok: true, chainId: 5042, db, lastIndexedBlock });
 });
 
 app.get("/api/stats", async (c) => {
