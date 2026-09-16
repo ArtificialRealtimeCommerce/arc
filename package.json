@@ -11,9 +11,10 @@
     "build": "tsc",
     "test": "node --test --import tsx tests/*.test.ts",
     "db:migrate": "tsx src/db/migrate.ts",
+    "migrate": "node dist/db/migrate.js",
     "indexer": "tsx src/indexer/index.ts",
     "api": "tsx src/api/server.ts",
-    "start": "node dist/api/server.js",
+    "start": "node dist/db/migrate.js && node dist/api/server.js",
     "start:indexer": "node dist/indexer/index.js"
   },
   "dependencies": {

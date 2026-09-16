@@ -14,6 +14,6 @@ COPY --from=build /app/dist ./dist
 COPY web ./web
 EXPOSE 3000
 # Railway: run two services from this image.
-#   api:     CMD ["node","dist/api/server.js"]        (default)
+#   api:     default CMD below — runs migration (idempotent) then starts the server.
 #   indexer: override start command -> node dist/indexer/index.js
-CMD ["node", "dist/api/server.js"]
+CMD ["sh", "-c", "node dist/db/migrate.js && node dist/api/server.js"]

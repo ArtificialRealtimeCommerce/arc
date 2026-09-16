@@ -6,6 +6,13 @@ import { pool } from "./client.js";
 const here = dirname(fileURLToPath(import.meta.url));
 const sql = readFileSync(join(here, "schema.sql"), "utf8");
 
-await pool.query(sql);
-console.log("schema applied");
-await pool.end();
+try {
+  await pool.query(sql);
+  console.log("schema applied");
+} catch (err) {
+  console.error("migration failed:", (err as Error).message);
+  await pool.end();
+  process.exit(1);
+} finally {
+  await pool.end().catch(() => {});
+}
