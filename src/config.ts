@@ -41,7 +41,10 @@ export const config = {
     usdc: optionalAddress("USDC_ADDRESS"),
   },
   startBlock: env("START_BLOCK", "latest"),
-  blockBatch: BigInt(env("BLOCK_BATCH", "50")),
+  // Arc is dense (~55 logs/block) and rpc.arc-scan.org caps eth_getLogs at 20 000
+  // RESULTS (not block-range). 20 blocks ≈ 1100 logs — well under the cap with headroom
+  // for bursts. Raise via BLOCK_BATCH env; the indexer also auto-bisects on cap errors.
+  blockBatch: BigInt(env("BLOCK_BATCH", "20")),
   pollIntervalMs: Number(env("POLL_INTERVAL_MS", "800")),
   port: Number(env("PORT", "3000")),
 };

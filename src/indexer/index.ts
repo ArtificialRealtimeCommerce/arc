@@ -30,9 +30,33 @@ async function resolveStartBlock(): Promise<bigint> {
   return BigInt(config.startBlock);
 }
 
+// rpc.arc-scan.org caps eth_getLogs at 20 000 RESULTS per query. On a burst a batch can
+// blow past it; the RPC rejects the whole query rather than truncating. Detect that class
+// of error and bisect the block range until each sub-query fits. A single block never
+// exceeds the cap in practice (~55 logs/block), so recursion terminates at from==to.
+const CAP_ERROR = /exceed|max results|more than \d+ results|result set too large|response size|too many|limit exceeded/i;
+
+async function getLogsBounded(address: Address, from: bigint, to: bigint): Promise<any[]> {
+  try {
+    return await client.getLogs({ address, fromBlock: from, toBlock: to });
+  } catch (err) {
+    const msg = (err as Error).message ?? "";
+    if (from < to && CAP_ERROR.test(msg)) {
+      const mid = from + (to - from) / 2n;
+      console.warn(`[getLogs] result cap hit for ${from}-${to}; bisecting to ${from}-${mid} / ${mid + 1n}-${to}`);
+      const left = await getLogsBounded(address, from, mid);
+      const right = await getLogsBounded(address, mid + 1n, to);
+      return left.concat(right);
+    }
+    throw err;
+  }
+}
+
 async function indexRange(mods: Module[], from: bigint, to: bigint): Promise<void> {
   for (const m of mods) {
-    const raw = await client.getLogs({ address: m.address, fromBlock: from, toBlock: to });
+    // Fetch the whole [from,to] for this module (bisecting internally if the RPC caps out)
+    // so onLogs sees every tx's logs together — required for correct mirror dedup.
+    const raw = await getLogsBounded(m.address, from, to);
     if (raw.length === 0) continue;
     const decoded = parseEventLogs({ abi: m.abi, logs: raw, strict: false });
     await m.onLogs(decoded);
